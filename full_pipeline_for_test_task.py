@@ -120,7 +120,6 @@ pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 zip_file = st.file_uploader("Upload a ZIP file containing JSON files", type=["zip"])
 
 if pdf_file is not None and zip_file is not None:
-    json_files = extract_json_from_zip(zip_file)
     extract_pdf_and_save(pdf_file, SAVE_PATH)
     json_files = extract_json_from_zip(zip_file)
     if json_files:
