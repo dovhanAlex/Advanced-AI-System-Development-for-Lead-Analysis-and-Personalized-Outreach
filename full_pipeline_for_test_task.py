@@ -19,7 +19,7 @@ import zipfile
 
 
 SAVE_PATH = "pdf_features.png"
-OPENAI_API_KEY = "sk-proj-CHIjTd4AAZ8llNTT8rROT3BlbkFJ8h2TZyvOZ8F2o99Fko8J"
+OPENAI_API_KEY = st.secrets['OPENAI_API_KEY']
 
 
 MODEL = "gpt-4o"
