@@ -119,20 +119,21 @@ st.title("AI agent for defining the hypothetical customer")
 pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 zip_file = st.file_uploader("Upload a ZIP file containing JSON files", type=["zip"])
 
-json_files = extract_json_from_zip(zip_file)
-extract_pdf_and_save(pdf_file, SAVE_PATH)
-json_files = extract_json_from_zip(zip_file)
-if json_files:
-    st.write(f"Found {len(json_files)} JSON files. Sending to OpenAI endpoint...")
-    base64_image = encode_image(SAVE_PATH)
-    lectures_title_and_summary_combined = extract_data_from_pdf(base64_image)
+if pdf_file is not None and zip_file is not None:
+    json_files = extract_json_from_zip(zip_file)
+    extract_pdf_and_save(pdf_file, SAVE_PATH)
+    json_files = extract_json_from_zip(zip_file)
+    if json_files:
+        st.write(f"Found {len(json_files)} JSON files. Sending to OpenAI endpoint...")
+        base64_image = encode_image(SAVE_PATH)
+        lectures_title_and_summary_combined = extract_data_from_pdf(base64_image)
 
-    results = []
-    for json_data in json_files:
-        feedback, message = send_data_to_openai(json_data, lectures_title_and_summary_combined)
-        results.append((feedback, message))
+        results = []
+        for json_data in json_files:
+            feedback, message = send_data_to_openai(json_data, lectures_title_and_summary_combined)
+            results.append((feedback, message))
 
-    for idx, result in enumerate(results):
-        st.write(f"Response for JSON file {idx + 1}:\n\n Feedback: {result[0]},\n\n Message to the user: {result[1]}")
+        for idx, result in enumerate(results):
+            st.write(f"Response for JSON file {idx + 1}:\n\n Feedback: {result[0]},\n\n Message to the user: {result[1]}")
 else:
     st.write("No JSON files found in the ZIP file.")
