@@ -16,6 +16,7 @@ import json
 import fitz
 import streamlit as st
 import zipfile
+import pandas as pd
 
 
 SAVE_PATH = "pdf_features.png"
@@ -130,14 +131,22 @@ if pdf_file is not None and zip_file is not None and submit_button:
         lectures_title_and_summary_combined = extract_data_from_pdf(client,
                                                                     base64_image)
 
-        results = []
+        results = pd.DataFrame([], columns=['json_name', 'feedback', 'message_to_the_client'])
         for json_data in json_files:
             feedback, message = send_data_to_openai(client,
                                                     json_data,
                                                     lectures_title_and_summary_combined)
-            results.append((feedback, message))
+            results = pd.concat([results,
+                                 pd.DataFrame({'json_name': json_data,
+                                               'feedback': feedback,
+                                               'message_to_the_client': message})])
 
-        for idx, result in enumerate(results):
-            st.write(f"Response for JSON file {idx + 1}:\n\n Feedback: {result[0]},\n\n Message to the user: {result[1]}")
-else:
+        st.download_button(
+            "Press to Download",
+            results,
+            "file.csv",
+            "text/csv",
+            key='download-csv'
+        )
+elif zip_file is None and submit_button:
     st.write("No JSON files found in the ZIP file.")
