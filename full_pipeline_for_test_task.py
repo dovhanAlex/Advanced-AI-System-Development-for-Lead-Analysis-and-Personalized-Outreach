@@ -19,11 +19,9 @@ import zipfile
 
 
 SAVE_PATH = "pdf_features.png"
-OPENAI_API_KEY = st.secrets['OPENAI_API_KEY']
 
 
 MODEL = "gpt-4o"
-client = OpenAI(api_key=OPENAI_API_KEY)
 
 
 def encode_image(image_path):
@@ -31,7 +29,7 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
-def extract_data_from_pdf(base64_image):
+def extract_data_from_pdf(client, base64_image):
     response = client.chat.completions.create(
         model=MODEL,
         messages=[
@@ -55,7 +53,7 @@ def extract_data_from_pdf(base64_image):
                       for dictionary in json_answer['lectures']])
 
 
-def send_data_to_openai(json_data, lectures_title_and_summary_combined):
+def send_data_to_openai(client, json_data, lectures_title_and_summary_combined):
     MODEL = 'gpt-4-turbo'
     content = """
                 You are helpful assistan which should determine the hypothetical customer.
@@ -115,21 +113,28 @@ def extract_json_from_zip(zip_file):
 
 
 st.title("AI agent for defining the hypothetical customer")
-
 pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 zip_file = st.file_uploader("Upload a ZIP file containing JSON files", type=["zip"])
+with st.form('ticket_form'):
+    openai_api_key = st.text_input("Input the OPEN AI API key")
+    submit_button = st.form_submit_button("Send key to the server")
 
-if pdf_file is not None and zip_file is not None:
+client = OpenAI(api_key=openai_api_key)
+
+if pdf_file is not None and zip_file is not None and submit_button:
     extract_pdf_and_save(pdf_file, SAVE_PATH)
     json_files = extract_json_from_zip(zip_file)
     if json_files:
         st.write(f"Found {len(json_files)} JSON files. Sending to OpenAI endpoint...")
         base64_image = encode_image(SAVE_PATH)
-        lectures_title_and_summary_combined = extract_data_from_pdf(base64_image)
+        lectures_title_and_summary_combined = extract_data_from_pdf(client,
+                                                                    base64_image)
 
         results = []
         for json_data in json_files:
-            feedback, message = send_data_to_openai(json_data, lectures_title_and_summary_combined)
+            feedback, message = send_data_to_openai(client,
+                                                    json_data,
+                                                    lectures_title_and_summary_combined)
             results.append((feedback, message))
 
         for idx, result in enumerate(results):
